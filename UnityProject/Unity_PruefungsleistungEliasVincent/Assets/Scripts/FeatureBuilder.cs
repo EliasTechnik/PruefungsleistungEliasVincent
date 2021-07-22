@@ -217,7 +217,7 @@ public class RewardMatrix{
     }
     public double[] getStage(int[] _address){
         int index=indexList.getIndex(_address);
-        Debug.Log("Index: "+index.ToString());
+        //Debug.Log("Index: "+index.ToString());
         return rewMatrix[index];
     } 
 }
