@@ -7,7 +7,7 @@ public class RoundManager : MonoBehaviour {
 
     public static RoundManager Instance { get; private set; }
 
-    public event EventHandler OnRoundNumberChanged;
+
 
     private int roundNumber;
     private float roundTimer;
