@@ -1,0 +1,53 @@
+@startuml
+class FeatureBuilderTools <<static>> {
+    + {static} addressToString(address:int[]) : string
+    + {static} addressToStringRev(address:int[]) : string
+}
+class AddressLookupTable {
+    + AddressLookupTable()
+    + getIndex(_address:int[]) : int
+    + getAddress(index:int) : int[]
+    + add(_address:int[]) : void
+}
+class FeatureBuilder {
+    + Pointer : int <<get>>
+    + Exponent : int <<get>>
+    + CombinationCount : int <<get>>
+    + FeatureBuilder(_content:AIFeature)
+    + FeatureBuilder(_content:AIFeature, _nextObject:FeatureBuilder)
+    + getReward(_address:int[], _action:AIAction) : double
+    + getFeature(_address:int[]) : AIFeature
+    + Reset() : void
+    + Next() : bool
+    + getAddress() : int[]
+}
+class AIFeature {
+    + AIFeature(_inputResolution:int, _rewards:double[][], _actionIF:AIActionInterface)
+    + InputResolution : int <<get>>
+    + Rewards(_action:AIAction) : double[]
+}
+class QLearning {
+}
+class QModell {
+}
+class RewardMatrix {
+    + RewardMatrix(_featureBuilder:FeatureBuilder)
+    + generateMatrix() : void
+    + getMatrixSize() : int[]
+    + getStage(_address:int[]) : double[]
+}
+class AIAction {
+    + ActionName : string <<get>>
+    + ActionID : int <<get>>
+    + AIAction(_actionID:int, _actionName:string)
+}
+class AIActionInterface {
+    + ActionCount : int <<get>>
+    + AIActionInterface()
+    + addAction(_name:string) : int
+    + GetAIAction(actionIndex:int) : AIAction
+    + GetAIAction(_name:string) : AIAction
+}
+FeatureBuilder --> "ActionInterface" AIActionInterface
+AIFeature --> "ActionIF" AIActionInterface
+@enduml
