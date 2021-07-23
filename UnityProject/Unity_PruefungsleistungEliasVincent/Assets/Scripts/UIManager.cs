@@ -18,7 +18,6 @@ public class UIManager : MonoBehaviour {
     private TextMeshProUGUI averageTimeText;
 
     private void Awake() {
-        TargetPositionIndicator = transform.Find("TargetPositionIndicator").GetComponent<RectTransform>();
         roundNumberText = transform.Find("RoundNumberText").GetComponent<TextMeshProUGUI>();
         roundTimerText = transform.Find("RoundTimerText").GetComponent<TextMeshProUGUI>();
         averageTimeText = transform.Find("AverageTimeText").GetComponent<TextMeshProUGUI>();
@@ -44,11 +43,6 @@ public class UIManager : MonoBehaviour {
         SetAverageTimeText("Average Time: " + averageTime.ToString("F2"));
     }
 
-    private void TargetIndicator() {
-        Vector3 dirToTargetPosition = -(Target.transform.position - mainCamera.transform.position).normalized;
-
-        TargetPositionIndicator.eulerAngles = new Vector3(0,0,GetAngleFromVector(dirToTargetPosition));
-    }
 
 
     //Converts vector coordinates to angle
@@ -59,7 +53,6 @@ public class UIManager : MonoBehaviour {
     }
 
     private void Update() {
-        TargetIndicator();
         HandleRoundTimer();
         HandleAverageTime();
     }

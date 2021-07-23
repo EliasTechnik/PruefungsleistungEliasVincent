@@ -5,8 +5,6 @@ using System;
 
 public class TargetObject : MonoBehaviour {
 
-    [SerializeField] private TargetObject Target;
-
     private int roundNumber;
     private float roundTimer;
     private float totalTime;
@@ -18,7 +16,7 @@ public class TargetObject : MonoBehaviour {
         totalTime += Time.deltaTime;
     }
     public void RespawnTarget() {
-        Target.transform.position = new Vector3 (UnityEngine.Random.Range(-20, 20), 0, UnityEngine.Random.Range(-20, 20));
+        this.transform.position = new Vector3 (UnityEngine.Random.Range(-20, 20), 0, UnityEngine.Random.Range(-20, 20));
         roundNumber++;
         OnRoundNumberChanged?.Invoke(this, EventArgs.Empty);
     }
@@ -38,8 +36,4 @@ public class TargetObject : MonoBehaviour {
     public float GetAverageTime() {
         return totalTime/(roundNumber+1);
     }
-
-
-
-
 }

@@ -8,6 +8,8 @@ public class GameManager : MonoBehaviour {
     [SerializeField] private TargetObject Target;
     [SerializeField] private GameObject Arrow;
 
+    public bool respawnbool;
+
     private void Start() {
         Player = new PlayerObject(GameObject.Find("player_obj"));
     }
@@ -26,9 +28,16 @@ public class GameManager : MonoBehaviour {
         if (Input.GetKey(KeyCode.D)) {
         Player.HandleMovement(KeyCode.D);
         }
+
+        if (respawnbool) {
+            Player.RespawnPlayer();
+            Player.shouldRespawn=false;
+            respawnbool = false;
+        }
         Player.UpdateMove();
         UpdateArrows();
     }
+
 
 
         private void UpdateArrows(){
