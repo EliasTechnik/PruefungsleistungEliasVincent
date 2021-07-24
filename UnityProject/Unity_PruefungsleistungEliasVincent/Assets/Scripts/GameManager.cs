@@ -7,6 +7,7 @@ public class GameManager : MonoBehaviour {
     private PlayerObject Player;
     [SerializeField] private TargetObject Target;
     [SerializeField] private GameObject Arrow;
+    [SerializeField] private ObstacleGenerator obstacleGenerator;
 
     public bool respawnbool;
 
@@ -30,6 +31,7 @@ public class GameManager : MonoBehaviour {
         }
 
         if (respawnbool) {
+            obstacleGenerator.HandleObstacles();
             Player.RespawnPlayer();
             Player.shouldRespawn=false;
             respawnbool = false;

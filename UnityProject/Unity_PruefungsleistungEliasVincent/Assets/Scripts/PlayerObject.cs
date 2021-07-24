@@ -10,6 +10,7 @@ public class PlayerObject : MonoBehaviour {
     private float friction = 0.995f;
     private Vector3 currentPosition;
     private Vector3 inertia;
+    private Vector3 rayposition;
     private GameObject playerobject;
     [SerializeField] private TargetObject Target;
 
@@ -59,13 +60,13 @@ public class PlayerObject : MonoBehaviour {
         }
 
         inertia=new Vector3(inertia.x*friction,inertia.y*friction,inertia.z*friction);
-        playerobject.transform.SetPositionAndRotation(currentPosition,new Quaternion(0,0.5f,0,0)); 
+        playerobject.transform.SetPositionAndRotation(currentPosition,new Quaternion(0,0.5f,0,0));
+        rayposition = currentPosition; 
     }
 
     public void RespawnPlayer() {
-        currentPosition = Vector3.zero;
+        currentPosition = new Vector3(Random.Range(-100, 100),0,Random.Range(-100,100));
         inertia=Vector3.zero;
-        //Debug.Log("Respawning Player!");
     }
 
     private void Update() {
@@ -75,11 +76,15 @@ public class PlayerObject : MonoBehaviour {
         }
     }
 
+    private void LateUpdate() {
+        CheckDistance();
+    }
+
     private void OnTriggerEnter(Collider other) {
         if (other.name == "target_obj") {
             Target.RespawnTarget();
         }
-        if (other.tag == "obstacle") {
+        if (other.tag == "obstacle" || other.tag == "border") {
             //Debug.Log("Hit!");
             shouldRespawn=true;
         }
@@ -88,6 +93,32 @@ public class PlayerObject : MonoBehaviour {
         playerobject = _object;
         currentPosition = playerobject.transform.position;
         inertia = new Vector3(0,0,0);
+    }
+
+    //Raycasting
+
+    private void CheckDistance() {
+
+    RaycastHit hitforward;
+    RaycastHit hitleft;
+    RaycastHit hitright;
+    RaycastHit hitback;
+
+    if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hitforward, 50)) {
+        //Debug.Log(hitforward.distance);
+    }
+
+    if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.left), out hitleft, 50)) {
+        //Debug.Log(hitleft.distance);
+    }
+
+    if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.right), out hitright, 50)) {
+        //Debug.Log(hitright.distance);
+    }
+
+    if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.back), out hitback, 50)) {
+        //Debug.Log(hitback.distance);
+    }    
     }
 
 

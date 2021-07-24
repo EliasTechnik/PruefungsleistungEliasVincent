@@ -6,6 +6,7 @@ TagManager:
   tags:
   - target
   - obstacle
+  - border
   layers:
   - Default
   - TransparentFX
