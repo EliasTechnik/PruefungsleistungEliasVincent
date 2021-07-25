@@ -18,48 +18,72 @@ public class TestScript : MonoBehaviour
 
         //W
         AIFeature WallFront=new AIFeature(
-            4,//FeatureResolution
             new double[4][]{//W A S D
                 new double[]{-100,0,10,0},//0
                 new double[]{-80,0,8,0},//1
                 new double[]{-40,0,4,0},//2
                 new double[]{1,1,1,1}//3
             },
-            AInterface //connectedInterface
+            new InputRange[]{
+                new InputRange(0,50),
+                new InputRange(1,40,50),
+                new InputRange(2,30,40),
+                new InputRange(3,0,30),
+            },
+            AInterface, //connectedInterface
+            "WallFront"
         );
         AIFeature WallBack=new AIFeature(
-            4,//FeatureResolution
             new double[4][]{//W A S D
                 new double[]{10,0,-100,0},//0
                 new double[]{8,0,-80,0},//1
                 new double[]{4,0,-40,0},//2
                 new double[]{1,1,1,1}//3
             },
-            AInterface //connectedInterface
+            new InputRange[]{
+                new InputRange(0,50),
+                new InputRange(1,40,50),
+                new InputRange(2,30,40),
+                new InputRange(3,0,30),
+            },
+            AInterface, //connectedInterface
+            "WallBack"
         );
         AIFeature WallLeft=new AIFeature( //incorrect, just for testing!
-            4,//FeatureResolution
             new double[4][]{//W A S D
                 new double[]{10,0,-100,0},//0
                 new double[]{8,0,-80,0},//1
                 new double[]{4,0,-40,0},//2
                 new double[]{1,1,1,1}//3
             },
-            AInterface //connectedInterface
+            new InputRange[]{
+                new InputRange(0,50),
+                new InputRange(1,40,50),
+                new InputRange(2,30,40),
+                new InputRange(3,0,30),
+            },
+            AInterface, //connectedInterface
+            "WallLeft"
         );
         AIFeature WallRight=new AIFeature(//incorrect, just for testing!
-            4,//FeatureResolution
             new double[4][]{//W A S D
                 new double[]{10,0,-100,0},//0
                 new double[]{8,0,-80,0},//1
                 new double[]{4,0,-40,0},//2
                 new double[]{1,1,1,1}//3
             },
-            AInterface //connectedInterface
+            new InputRange[]{
+                new InputRange(0,50),
+                new InputRange(1,40,50),
+                new InputRange(2,30,40),
+                new InputRange(3,0,30),
+            },
+            AInterface, //connectedInterface
+            "WallRight"
         );
 
-        FeatureBuilder fa0=new FeatureBuilder(WallBack);
-        FeatureBuilder fa1=new FeatureBuilder(WallFront,fa0);
+        FeatureBuilder fa0=new FeatureBuilder(WallFront);
+        FeatureBuilder fa1=new FeatureBuilder(WallBack,fa0);
         FeatureBuilder fa2=new FeatureBuilder(WallLeft,fa1);
         FeatureBuilder fa3=new FeatureBuilder(WallRight,fa2);
 
@@ -72,11 +96,20 @@ public class TestScript : MonoBehaviour
 
         RewardMatrix rewMatrix=new RewardMatrix(fa3);
         rewMatrix.generateMatrix();
-        int[] ms=rewMatrix.getMatrixSize();
-        Debug.Log("actions: "+ms[0].ToString()+" features: "+ms[1].ToString()+" featureCombinations: "+ms[2].ToString()+" FieldsTotal: "+ms[3].ToString());
+        Debug.Log("actions: "+rewMatrix.ActionCount.ToString()+" features: "+rewMatrix.FeatureCount.ToString()+" featureCombinations: "+rewMatrix.RowCount.ToString()+" FieldsTotal: "+rewMatrix.FieldCount.ToString());
         
-        double[] stage=rewMatrix.getStage(new int[]{3,3,3,3});
-        Debug.Log("reward @3333: W: "+stage[0].ToString()+" A: "+stage[1].ToString()+" S:"+stage[2].ToString()+" D:"+stage[3].ToString()+" ");
+        double[] stage=rewMatrix.getStage(new int[]{1,0,2,3});
+        Debug.Log("reward @1023: W: "+stage[0].ToString()+" A: "+stage[1].ToString()+" S:"+stage[2].ToString()+" D:"+stage[3].ToString()+" ");
+
+        AIFeatureInterface fi=new AIFeatureInterface();
+        fi=fa3.getFeatureInterface(fi);
+
+        for(int i=0;i<fi.featureCount;i++){
+            Debug.Log("Feature "+i.ToString()+": "+fi[i].FeatureName);
+        }
+        for(int i=0;i<AInterface.ActionCount;i++){
+            Debug.Log("Index: "+i.ToString()+" Action: "+AInterface[i].ActionID.ToString()+":"+AInterface[i].ActionName);
+        }
 
 
     }

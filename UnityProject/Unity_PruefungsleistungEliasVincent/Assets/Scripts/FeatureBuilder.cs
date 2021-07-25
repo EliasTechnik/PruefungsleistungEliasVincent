@@ -156,15 +156,79 @@ public class FeatureBuilder{
             return result2;
         }
     }
+    public AIFeatureInterface getFeatureInterface(AIFeatureInterface _fi){
+        if(nextElement!=null){
+            _fi=nextElement.getFeatureInterface(_fi);
+        }
+        _fi.addFeature(content);
+        return _fi;
+    }
+}
+public class InputRange{
+    private double lowerLimit;
+    private double upperLimit;
+    private int returnValue;
+    public InputRange(int _returnValue, double _lowerLimit){
+        lowerLimit=_lowerLimit;
+        upperLimit=double.MaxValue;
+        returnValue=_returnValue;
+        if(returnValue==-1){
+            returnValue=0;
+        }
+    }
+    public InputRange(int _returnValue,double _lowerLimit, double _upperLimit){
+        lowerLimit=_lowerLimit;
+        upperLimit=_upperLimit;
+        returnValue=_returnValue;
+        if(returnValue==-1){
+            returnValue=0;
+        }
+    }
+    public int IsInRange(double _value){
+        if(_value>lowerLimit){
+            if(_value<lowerLimit){
+                return returnValue;
+            }
+            else{
+                return -1;
+            }
+        }
+        else{
+            return -1;
+        }
+    }
 }
 public class AIFeature{ //Der name ist vlt noch ein wenig unglücklich gewählt
     private int inputResolution;
     private double[][] rewards;
     private AIActionInterface actionIF;
-    public AIFeature(int _inputResolution, double[][] _rewards, AIActionInterface _actionIF){ 
-        inputResolution=_inputResolution;
+    private string featureName;
+    private List<InputRange> steps;
+    private double currentRawInput;
+    public double CurrentRawInput{get{return currentRawInput;}set{currentRawInput=value;}}
+    public int ConvertedInput{get{return inputToStep(currentRawInput);}}
+    public string FeatureName{get{return featureName;}}
+    public AIFeature(double[][] _rewards, InputRange[] _inputRange, AIActionInterface _actionIF){ 
+        inputResolution=_rewards.Length; 
         rewards=_rewards;
         actionIF=_actionIF;
+        featureName="Unknown Feature";
+        currentRawInput=0;
+        steps=new List<InputRange>();
+        foreach(InputRange r in _inputRange){
+            steps.Add(r);
+        }
+    }
+    public AIFeature(double[][] _rewards, InputRange[] _inputRange, AIActionInterface _actionIF, string _name){ 
+        inputResolution=_rewards.Length;   
+        rewards=_rewards;
+        actionIF=_actionIF;
+        featureName=_name;
+        currentRawInput=0;
+        steps=new List<InputRange>();
+        foreach(InputRange r in _inputRange){
+            steps.Add(r);
+        }
     }
     public int InputResolution{get{return inputResolution;}}
     public double[] Rewards(AIAction _action){
@@ -175,13 +239,40 @@ public class AIFeature{ //Der name ist vlt noch ein wenig unglücklich gewählt
         return result.ToArray();
     }
     public AIActionInterface ActionIF{get{return actionIF;}}
+    public int inputToStep(double _input){ //vlt zu private ändern
+        currentRawInput=_input;
+        foreach(InputRange r in steps){
+            int step=r.IsInRange(_input);
+            if(step>-1){
+                return step;
+            }
+        }
+        return 0; //nicht korrekt aber vergibt Fehler
+    }
 
 }
-public class QLearning{
-
-}
-public class QModell{
-
+public class AIFeatureInterface{ //Sammelt alle nutzbaren Features in einem Objekt und macht sie zugänglich
+    private List<AIFeature> features;
+    public AIFeatureInterface(){
+        features=new List<AIFeature>();
+    } 
+    public void addFeature(AIFeature _feature){
+        features.Add(_feature);
+    }
+    public int featureCount{get{return features.Count;}}
+    public AIFeature getFeatureByName(string _name){
+        foreach(AIFeature f in features){
+            if(f.FeatureName==_name){
+                return f;
+            }
+        }
+        return null;
+    }
+    public AIFeature this[int index]{
+        get{
+            return features[index];
+        }
+    }
 }
 public class RewardMatrix{
     private AIActionInterface actionInterface;
@@ -194,7 +285,7 @@ public class RewardMatrix{
         indexList=new AddressLookupTable();
     }
     public void generateMatrix(){//method: sum
-        rewMatrix=new double[getMatrixSize()[2]][];
+        rewMatrix=new double[this.RowCount][];
         featureBuilder.Reset();
         int index=0;
         do{
@@ -207,19 +298,18 @@ public class RewardMatrix{
             indexList.add(featureBuilder.getAddress());
         }while(!featureBuilder.Next());
     }
-    public int[] getMatrixSize(){//actions, features,featureCombinations,Fields
-        int[] size=new int[4];
-        size[0]=actionInterface.ActionCount;
-        size[1]=featureBuilder.getAddress().Length;
-        size[2]=featureBuilder.CombinationCount;
-        size[3]=size[2]*size[0];
-        return size;
-    }
+    public int ActionCount{get{return actionInterface.ActionCount;}}
+    public int FeatureCount{get{return featureBuilder.getAddress().Length;}}
+    public int RowCount{get{return featureBuilder.CombinationCount;}}
+    public int FieldCount{get{return featureBuilder.CombinationCount*actionInterface.ActionCount;}}
     public double[] getStage(int[] _address){
         int index=indexList.getIndex(_address);
         //Debug.Log("Index: "+index.ToString());
         return rewMatrix[index];
     } 
+    public int addressToIndex(int[] _address){
+        return indexList.getIndex(_address);
+    }
 }
 public class AIAction{
     private string actionName;
