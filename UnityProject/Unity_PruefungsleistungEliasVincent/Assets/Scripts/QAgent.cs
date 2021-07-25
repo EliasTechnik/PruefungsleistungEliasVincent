@@ -31,7 +31,7 @@ public class QAgent{
     }
     public bool setParams(double _discountFactor, double _learningRate, double _explorationThreshold){
         if(_discountFactor>=0){
-            if(_learningRate>=0 && _learningRate<1){ //Wertebereich sollte nochmal überdacht werden
+            if(_learningRate>=0 && _learningRate<=1){ //Wertebereich sollte nochmal überdacht werden
                 if(_explorationThreshold>=0 && _explorationThreshold<1){
                     discountFactor=_discountFactor;
                     learningRate=_learningRate;

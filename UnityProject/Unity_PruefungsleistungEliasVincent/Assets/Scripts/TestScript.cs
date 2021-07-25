@@ -85,7 +85,9 @@ public class TestScript : MonoBehaviour
         FeatureBuilder fa0=new FeatureBuilder(WallFront);
         FeatureBuilder fa1=new FeatureBuilder(WallBack,fa0);
         FeatureBuilder fa2=new FeatureBuilder(WallLeft,fa1);
-        FeatureBuilder fa3=new FeatureBuilder(WallRight,fa2);
+        //FeatureBuilder fa3=new FeatureBuilder(WallRight,fa2);
+
+        FeatureBuilder fa3=new FeatureBuilder(WallRight,new FeatureBuilder(WallLeft,new FeatureBuilder(WallBack,new FeatureBuilder(WallFront))));
 
         Debug.Log("Feature Combinations: "+fa3.CombinationCount.ToString());
 
@@ -110,6 +112,21 @@ public class TestScript : MonoBehaviour
         for(int i=0;i<AInterface.ActionCount;i++){
             Debug.Log("Index: "+i.ToString()+" Action: "+AInterface[i].ActionID.ToString()+":"+AInterface[i].ActionName);
         }
+
+        QAgent ai=new QAgent(rewMatrix,AInterface);
+
+        fi[0].CurrentRawInput=35;
+        fi[1].CurrentRawInput=30;
+        fi[2].CurrentRawInput=1000;
+        fi[3].CurrentRawInput=80;
+
+        AIAction prediction=ai.Predict(fi);
+
+        Debug.Log("Predicted: "+prediction.ActionName);
+
+        ai.Reward(fi);
+
+        ai.setParams(0.5,0.5,1);
 
 
     }
