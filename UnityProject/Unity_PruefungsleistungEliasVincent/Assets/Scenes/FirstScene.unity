@@ -249,7 +249,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &132686642
 MonoBehaviour:
@@ -275,7 +275,7 @@ GameObject:
   - component: {fileID: 281614785}
   - component: {fileID: 281614784}
   - component: {fileID: 281614783}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: border (2)
   m_TagString: border
   m_Icon: {fileID: 0}
@@ -523,7 +523,7 @@ RectTransform:
   - {fileID: 750037529}
   - {fileID: 884788120}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -594,7 +594,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &690606868
 GameObject:
@@ -1099,7 +1099,7 @@ Transform:
   - {fileID: 1644303865}
   - {fileID: 690606871}
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1086372965
 GameObject:
@@ -1214,7 +1214,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   amount: 3
-  Target: {fileID: 132686642}
   ObstacleList:
   - {fileID: 1224277850639884414, guid: 4421337bbee05094ca53e6573f15d11d, type: 3}
   - {fileID: 8611088750754093349, guid: 4a749ffa647f4e549a6fdfeb2289e695, type: 3}
@@ -1231,7 +1230,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1179594249
 GameObject:
@@ -1245,7 +1244,7 @@ GameObject:
   - component: {fileID: 1179594252}
   - component: {fileID: 1179594251}
   - component: {fileID: 1179594250}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: border (3)
   m_TagString: border
   m_Icon: {fileID: 0}
@@ -1340,7 +1339,7 @@ GameObject:
   - component: {fileID: 1435921305}
   - component: {fileID: 1435921304}
   - component: {fileID: 1435921303}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: border (1)
   m_TagString: border
   m_Icon: {fileID: 0}
@@ -1629,7 +1628,7 @@ GameObject:
   - component: {fileID: 2066312884}
   - component: {fileID: 2066312883}
   - component: {fileID: 2066312882}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: border
   m_TagString: border
   m_Icon: {fileID: 0}

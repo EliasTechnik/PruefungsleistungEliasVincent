@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour {
 
+    public static GameManager Instance {get; private set;}
+
     private PlayerObject Player;
     [SerializeField] private TargetObject Target;
     [SerializeField] private GameObject Arrow;
@@ -11,12 +13,17 @@ public class GameManager : MonoBehaviour {
 
     public bool respawnbool;
 
+    private void Awake() {
+        Instance = this;
+    }
+
     private void Start() {
         Player = new PlayerObject(GameObject.Find("player_obj"));
     }
 
     private void Update() {
 
+        
         if (Input.GetKey(KeyCode.W)) {
         Player.HandleMovement(KeyCode.W);
         }
@@ -29,6 +36,7 @@ public class GameManager : MonoBehaviour {
         if (Input.GetKey(KeyCode.D)) {
         Player.HandleMovement(KeyCode.D);
         }
+        
 
         if (respawnbool) {
             obstacleGenerator.HandleObstacles();
@@ -39,8 +47,6 @@ public class GameManager : MonoBehaviour {
         Player.UpdateMove();
         UpdateArrows();
     }
-
-
 
         private void UpdateArrows(){
         Vector3 tp=Target.transform.position;

@@ -5,11 +5,17 @@ using System;
 
 public class TargetObject : MonoBehaviour {
 
+    public static TargetObject Instance {get; private set;}
+
     private int roundNumber;
     private float roundTimer;
     private float totalTime;
 
     public event EventHandler OnRoundNumberChanged;
+
+    private void Awake() {
+        Instance = this;
+    }
 
     private void Update() {
         roundTimer += Time.deltaTime;

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1224277850639884411}
   - component: {fileID: 1224277850639884408}
   - component: {fileID: 1224277850639884409}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: obs3
   m_TagString: obstacle
   m_Icon: {fileID: 0}
