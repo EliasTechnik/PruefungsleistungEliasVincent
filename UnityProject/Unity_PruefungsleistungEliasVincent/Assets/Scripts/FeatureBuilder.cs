@@ -22,7 +22,6 @@ public static class FeatureBuilderTools{
 
 public class AddressLookupTable{
     private List<List<int>> addressList;
-
     public AddressLookupTable(){
         addressList=new List<List<int>>();
     }
