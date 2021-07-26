@@ -31,12 +31,18 @@ public class QAgent{
         } 
     }
     public QAgent(string _path){
-        StreamReader file=new StreamReader(_path);
+        FileInfo file_info=new FileInfo( _path);
+        int buffersize=(int)file_info.Length+128; //Puffergröße bestimmen
         string data="";
-        string line="";
-        while((line = file.ReadLine()) != null){
-              data+=line;
-          }
+        string line;
+        using (StreamReader sr = new StreamReader(_path,System.Text.Encoding.Default,false,buffersize)){
+            while ((line = sr.ReadLine()) != null){
+                data+=line;
+            }
+        }
+        using (StreamWriter sw = new StreamWriter("Assets/ai/modell2.xml")){
+            sw.WriteLine(data);
+        }
         XMLobject xo=new XMLobject();
         xo.decodeXML(data);
 

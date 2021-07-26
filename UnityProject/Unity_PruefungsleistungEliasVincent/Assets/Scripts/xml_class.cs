@@ -1,21 +1,30 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
-using UnityEngine;
 using static System.Environment;
 //Version 1.1 Tested (rewritten decodeXML() --> attribute decode has to be tested)
 public class XMLobject{
     private string identifier;
     private List<XMLobject> childs;
     private string payload;
+    private int level=0;
     private List<List<string>> attributes; 
     public string Identifier{get{return identifier;}}
     public string Payload{get{return payload;}}
     public int ChildCount{get{return childs.Count;}}
+
+    public int Level{get{return level;}}
     public XMLobject(){
         attributes=new List<List<string>>();
         childs=new List<XMLobject>();
         payload="";
+    }
+    public XMLobject(int _level){
+        level=_level;
+        attributes=new List<List<string>>();
+        childs=new List<XMLobject>();
+        payload="";
+        Console.WriteLine("Object with Level: "+level.ToString()+" created.");
     }
     public XMLobject(string _identifier){
         identifier=_identifier;
@@ -40,6 +49,17 @@ public class XMLobject{
     public string decodeXML(string _xml){
         //remove linebraks
         _xml=_xml.Replace(NewLine,"");
+        _xml=_xml.Replace("\t","");
+        //remove header
+        while(_xml.IndexOf("<?")!=-1){
+            int headerstart=_xml.IndexOf("<?");
+            _xml=_xml.Remove(headerstart,_xml.IndexOf("?>")+2-headerstart);
+        }
+        //remove docktype
+        while(_xml.IndexOf("<!")!=-1){
+            int headerstart=_xml.IndexOf("<!");
+            _xml=_xml.Remove(headerstart,_xml.IndexOf(">")+1-headerstart);
+        }
         attributes=new List<List<string>>();
         string beforeXML="";
         string afterXML="";
@@ -50,8 +70,8 @@ public class XMLobject{
         int end=_xml.IndexOf('>');
         if(start>-1 && end>-1 && start<end){
             //valid
-            tag=_xml.Substring(start,end+1);
-            //Debug.Log("extracted Tag: "+tag);
+            tag=_xml.Substring(start,end-start+1);
+            //Console.WriteLine("extracted rawTag: "+tag);
             if(start>0){
                 beforeXML=_xml.Substring(0,start);
             }
@@ -59,24 +79,25 @@ public class XMLobject{
             if(tag.IndexOf(' ')>-1){
                 //has attributes
                 string a_tag=tag;
-                identifier=a_tag.Substring(start+1,a_tag.IndexOf(' ')); //get identifier before attributes
-                //Debug.Log("Tag with attribute found. Identifier: "+identifier);
+                identifier=a_tag.Substring(1,a_tag.IndexOf(' ')-1); //get identifier before attributes
+                //Console.WriteLine("Tag with attribute found. Identifier: "+identifier);
                 while(a_tag.IndexOf('=')>-1){
                     List<string> pair = new List<string>();
-                    string a_name=a_tag.Substring(a_tag.IndexOf(' ')+1,a_tag.IndexOf('=')-1);
-                    string a_value=a_tag.Substring(a_tag.IndexOf('"')+1,a_tag.IndexOf('"',a_tag.IndexOf('"')+1));
-                    a_tag=a_tag.Remove(a_tag.IndexOf(' '),a_name.Length+a_value.Length+3);//remove attribute and value from tag
+                    string a_name=a_tag.Substring(a_tag.IndexOf(' ')+1,a_tag.IndexOf('=')-a_tag.IndexOf(' ')-1);
+                    string a_value=a_tag.Substring(a_tag.IndexOf("\"")+1,a_tag.IndexOf("\"",a_tag.IndexOf("\"")+1)-a_tag.IndexOf("\"")-1);
+                    a_tag=a_tag.Remove(0,a_tag.IndexOf("\"",a_tag.IndexOf("\"")+1)+1);//remove attribute and value from tag
+                    //Console.WriteLine("a_tag after removal of attribute: *"+a_tag+"*");
                     pair.Add(a_name);
                     pair.Add(a_value);
-                    //Debug.Log("Found attribute: "+a_name+" with value: "+a_value);
+                    //Console.WriteLine("Found attribute: *"+a_name+"* with value: *"+a_value+"*");
                     attributes.Add(pair);
                 }
-                //Debug.Log("Tag after attribute extraction: "+a_tag);
+                //Console.WriteLine("Tag after attribute extraction: "+a_tag);
             }
             else{
                 //no attributes
-                identifier=tag.Substring(start+1,tag.IndexOf('>')-1);
-                //Debug.Log("Tag without attribute found. Identifier: "+identifier);
+                identifier=tag.Substring(1,tag.IndexOf('>')-1);
+                //Console.WriteLine("Tag without attribute found. Identifier: "+identifier);
             }
             //get beforeXML
             if(_xml.IndexOf(tag)>0){
@@ -85,26 +106,25 @@ public class XMLobject{
             //get innerXML
             start=_xml.IndexOf(tag)+tag.Length;
             innerXML=_xml.Substring(start);
-            Debug.Log("Extracted innerXML 1: "+innerXML);
+            //Console.WriteLine("Extracted innerXML 1: "+innerXML);
             string endTag="</"+identifier+">";
-            Debug.Log("Expected endTag: "+endTag);
-            Debug.Log("Index of EndTag: "+innerXML.IndexOf(endTag).ToString());
+            //Console.WriteLine("Expected endTag: "+endTag);
+            //Console.WriteLine("Index of EndTag: "+innerXML.IndexOf(endTag).ToString());
             innerXML=innerXML.Remove(innerXML.IndexOf(endTag));
-            //Debug.Log("Extracted innerXML 2: "+innerXML);
+            //Console.WriteLine("Extracted innerXML 2: "+innerXML);
             //get afterXML
             start=_xml.IndexOf(endTag)+endTag.Length;
             afterXML=_xml.Substring(start);
-            //Debug.Log("Extracted afterXML: "+afterXML);
+            //Console.WriteLine("Extracted afterXML: "+afterXML);
             payload=innerXML;
             //test if innerXML contains XML
             while(isXML(innerXML)){
-                //payload="";
-                XMLobject xo=new XMLobject();
+                XMLobject xo=new XMLobject(level+1);
                 innerXML=xo.decodeXML(innerXML);
                 payload=innerXML;
                 childs.Add(xo);
             }
-            //Debug.Log("Object: "+identifier+" Payload: "+payload);
+            //Console.WriteLine("Object: "+identifier+" Payload: "+payload);
             return afterXML;
         }
         else{

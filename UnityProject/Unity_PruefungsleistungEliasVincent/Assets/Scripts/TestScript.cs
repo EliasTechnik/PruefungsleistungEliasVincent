@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
-using System.Text
+using System.Text;
 
 using static FeatureBuilderTools;
 
@@ -95,7 +95,7 @@ public class TestScript : MonoBehaviour
 
         fa3.Reset();
         do{
-            Debug.Log("Reward for W @ "+addressToStringRev(fa3.getAddress())+" = "+fa3.getReward(fa3.getAddress(),AInterface.GetAIAction("W")).ToString());
+            //Debug.Log("Reward for W @ "+addressToStringRev(fa3.getAddress())+" = "+fa3.getReward(fa3.getAddress(),AInterface.GetAIAction("W")).ToString());
         }while(!fa3.Next());
 
         RewardMatrix rewMatrix=new RewardMatrix(fa3);
@@ -103,16 +103,16 @@ public class TestScript : MonoBehaviour
         Debug.Log("actions: "+rewMatrix.ActionCount.ToString()+" features: "+rewMatrix.FeatureCount.ToString()+" featureCombinations: "+rewMatrix.RowCount.ToString()+" FieldsTotal: "+rewMatrix.FieldCount.ToString());
         
         double[] stage=rewMatrix.getStage(new int[]{1,0,2,3});
-        Debug.Log("reward @1023: W: "+stage[0].ToString()+" A: "+stage[1].ToString()+" S:"+stage[2].ToString()+" D:"+stage[3].ToString()+" ");
+        //Debug.Log("reward @1023: W: "+stage[0].ToString()+" A: "+stage[1].ToString()+" S:"+stage[2].ToString()+" D:"+stage[3].ToString()+" ");
 
         AIFeatureInterface fi=new AIFeatureInterface();
         fi=fa3.getFeatureInterface(fi);
 
         for(int i=0;i<fi.featureCount;i++){
-            Debug.Log("Feature "+i.ToString()+": "+fi[i].FeatureName);
+            //Debug.Log("Feature "+i.ToString()+": "+fi[i].FeatureName);
         }
         for(int i=0;i<AInterface.ActionCount;i++){
-            Debug.Log("Index: "+i.ToString()+" Action: "+AInterface[i].ActionID.ToString()+":"+AInterface[i].ActionName);
+            //Debug.Log("Index: "+i.ToString()+" Action: "+AInterface[i].ActionID.ToString()+":"+AInterface[i].ActionName);
         }
 
         QAgent ai=new QAgent(rewMatrix,AInterface);
@@ -136,17 +136,6 @@ public class TestScript : MonoBehaviour
         //ai.setParams(0.5,0.5,1);
 
         ai.saveToFile("Assets/ai/modell.xml");
-        int buffersize=
-
-        StreamReader file=new StreamReader("Assets/ai/modell.xml",System.Text.Encoding.Default,false,buffersize);
-        string data="";
-        string line="";
-        while((line = file.ReadLine()) != null){
-              data+=line;
-        }
-        StreamWriter file2 = new StreamWriter("Assets/ai/modell2.xml");
-        file2.WriteLine(data);
-        file2.Close();
 
         QAgent ai2=new QAgent("Assets/ai/modell.xml");
         AIFeatureInterface fi2=ai2.GetFeatureInterface();
