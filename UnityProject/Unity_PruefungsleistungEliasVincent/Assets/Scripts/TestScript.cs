@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.IO;
+using System.Text
 
 using static FeatureBuilderTools;
 
@@ -25,7 +27,7 @@ public class TestScript : MonoBehaviour
                 new double[]{1,1,1,1}//3
             },
             new InputRange[]{
-                new InputRange(0,50),
+                new InputRange(0,50,false),
                 new InputRange(1,40,50),
                 new InputRange(2,30,40),
                 new InputRange(3,0,30),
@@ -41,7 +43,7 @@ public class TestScript : MonoBehaviour
                 new double[]{1,1,1,1}//3
             },
             new InputRange[]{
-                new InputRange(0,50),
+                new InputRange(0,50,false),
                 new InputRange(1,40,50),
                 new InputRange(2,30,40),
                 new InputRange(3,0,30),
@@ -57,7 +59,7 @@ public class TestScript : MonoBehaviour
                 new double[]{1,1,1,1}//3
             },
             new InputRange[]{
-                new InputRange(0,50),
+                new InputRange(0,50,false),
                 new InputRange(1,40,50),
                 new InputRange(2,30,40),
                 new InputRange(3,0,30),
@@ -73,7 +75,7 @@ public class TestScript : MonoBehaviour
                 new double[]{1,1,1,1}//3
             },
             new InputRange[]{
-                new InputRange(0,50),
+                new InputRange(0,50,false),
                 new InputRange(1,40,50),
                 new InputRange(2,30,40),
                 new InputRange(3,0,30),
@@ -115,18 +117,50 @@ public class TestScript : MonoBehaviour
 
         QAgent ai=new QAgent(rewMatrix,AInterface);
 
+
         fi[0].CurrentRawInput=35;
         fi[1].CurrentRawInput=30;
         fi[2].CurrentRawInput=1000;
         fi[3].CurrentRawInput=80;
 
-        AIAction prediction=ai.Predict(fi);
+        AIAction prediction=ai.PredictAndTrain(fi);
 
-        Debug.Log("Predicted: "+prediction.ActionName);
+        
+
+        Debug.Log("AI1 Predicted: "+prediction.ActionName);
 
         ai.Reward(fi);
 
-        ai.setParams(0.5,0.5,1);
+        //ai.printQMatrix();
+
+        //ai.setParams(0.5,0.5,1);
+
+        ai.saveToFile("Assets/ai/modell.xml");
+        int buffersize=
+
+        StreamReader file=new StreamReader("Assets/ai/modell.xml",System.Text.Encoding.Default,false,buffersize);
+        string data="";
+        string line="";
+        while((line = file.ReadLine()) != null){
+              data+=line;
+        }
+        StreamWriter file2 = new StreamWriter("Assets/ai/modell2.xml");
+        file2.WriteLine(data);
+        file2.Close();
+
+        QAgent ai2=new QAgent("Assets/ai/modell.xml");
+        AIFeatureInterface fi2=ai2.GetFeatureInterface();
+
+        fi[0].CurrentRawInput=35;
+        fi[1].CurrentRawInput=30;
+        fi[2].CurrentRawInput=1000;
+        fi[3].CurrentRawInput=80;
+
+        AIAction prediction2=ai2.PredictAndTrain(fi2);
+
+        Debug.Log("AI 2 Predicted: "+prediction.ActionName);
+
+        ai2.Reward(fi2);
 
 
     }

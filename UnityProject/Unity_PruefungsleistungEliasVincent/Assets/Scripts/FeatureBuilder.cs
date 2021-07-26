@@ -25,6 +25,19 @@ public class AddressLookupTable{
     public AddressLookupTable(){
         addressList=new List<List<int>>();
     }
+    public AddressLookupTable(XMLobject _xml){
+        addressList=new List<List<int>>();
+        _xml=_xml.find("AddressLookupTable");
+        for(int i=0;i<_xml.ChildCount;i++){
+            XMLobject address=_xml[i];
+            List<int> a=new List<int>();
+            string[] a_s=address.Payload.Split(' ');
+            foreach(string s in a_s){
+                a.Add(int.Parse(s));
+            }
+            addressList.Insert(int.Parse(address.getAttribute("index")),a);
+        }
+    }
     public int getIndex(int[] _address){
         for(int i=0;i<addressList.Count;i++){
             List<int> l=addressList[i];
@@ -56,6 +69,22 @@ public class AddressLookupTable{
         }
         addressList.Add(l);
     }
+    public XMLobject toXML(){
+        XMLobject xo = new XMLobject("AddressLookupTable");
+        int i=0;
+        foreach(List<int> l in addressList){
+            XMLobject xl =new XMLobject("address");
+            xl.addAttribute("index",i.ToString());
+            string content="";
+            foreach(int a in l){
+                content+=a.ToString()+" ";
+            }
+            xl.addPayload(content);
+            i++;
+            xo.addChild(xl);
+        }
+        return xo;
+    }
 }
 public class FeatureBuilder{
     private FeatureBuilder nextElement; //null wenn es das letzte Element ist
@@ -77,11 +106,27 @@ public class FeatureBuilder{
         content=_content;
         exponent=content.InputResolution-1;
         nextElement=null;
+        pointer=0;
     }
     public FeatureBuilder(AIFeature _content, FeatureBuilder _nextObject){
         content=_content;
         exponent=content.InputResolution-1;
         nextElement=_nextObject;
+        pointer=0;
+    }
+    public FeatureBuilder(XMLobject _xml){
+        if(_xml.Identifier=="nextElement"){
+            _xml=_xml.findOnFirstLevel("FeatureBuilder");
+        }
+        content=new AIFeature(_xml.findOnFirstLevel("content"));
+        exponent=int.Parse(_xml.findOnFirstLevel("exponent").Payload);
+        if(_xml.findOnFirstLevel("nextElement")==null){
+            nextElement=null;
+        }
+        else{
+            nextElement=new FeatureBuilder(_xml.findOnFirstLevel("nextElement"));
+        }
+        pointer=0;
     }
     public double getReward(int[] _address, AIAction _action){//Rekursiv
         if(_address.Length==1){
@@ -162,14 +207,28 @@ public class FeatureBuilder{
         _fi.addFeature(content);
         return _fi;
     }
+    public XMLobject toXML(){
+        XMLobject xo=new XMLobject("FeatureBuilder",new XMLobject("content",content.toXML()));
+        xo.addChild(new XMLobject("exponent",exponent.ToString()));
+        if(nextElement!=null){
+            xo.addChild(new XMLobject("nextElement",nextElement.toXML()));
+        }
+        return xo;
+    }
 }
 public class InputRange{
     private double lowerLimit;
     private double upperLimit;
     private int returnValue;
-    public InputRange(int _returnValue, double _lowerLimit){
-        lowerLimit=_lowerLimit;
-        upperLimit=double.MaxValue;
+    public InputRange(int _returnValue, double _Limit, bool isUpperLimit){
+        if(isUpperLimit){
+            lowerLimit=double.MinValue;
+            upperLimit=_Limit;
+        }
+        else{
+            lowerLimit=_Limit;
+            upperLimit=double.MaxValue;
+        }
         returnValue=_returnValue;
         if(returnValue==-1){
             returnValue=0;
@@ -183,9 +242,14 @@ public class InputRange{
             returnValue=0;
         }
     }
+    public InputRange(XMLobject _xml){
+        lowerLimit=double.Parse(_xml.find("lowerLimit").Payload);
+        upperLimit=double.Parse(_xml.find("upperLimit").Payload);
+        returnValue=int.Parse(_xml.find("returnValue").Payload);
+    }
     public int IsInRange(double _value){
         if(_value>lowerLimit){
-            if(_value<lowerLimit){
+            if(_value<upperLimit){
                 return returnValue;
             }
             else{
@@ -195,6 +259,13 @@ public class InputRange{
         else{
             return -1;
         }
+    }
+    public XMLobject toXML(){
+        return new XMLobject("InputRange",new XMLobject[]{
+            new XMLobject("lowerLimit",lowerLimit.ToString()),
+            new XMLobject("upperLimit",upperLimit.ToString()),
+            new XMLobject("returnValue",returnValue.ToString())
+        });
     }
 }
 public class AIFeature{ //Der name ist vlt noch ein wenig unglücklich gewählt
@@ -229,6 +300,27 @@ public class AIFeature{ //Der name ist vlt noch ein wenig unglücklich gewählt
             steps.Add(r);
         }
     }
+    public AIFeature(XMLobject _xml){
+        inputResolution=int.Parse(_xml.find("inputResolution").Payload);
+        XMLobject xo_rewards=_xml.find("rewards");
+        rewards=new double[xo_rewards.ChildCount][];
+        for(int i=0;i<xo_rewards.ChildCount;i++){
+            XMLobject xo_row=xo_rewards[i];
+            double[] row = new double[xo_row.ChildCount];
+            for(int j=0;j<xo_row.ChildCount;j++){
+                row[j]=double.Parse(xo_row.Payload);
+            }
+            rewards[i]=row;
+        }
+        featureName=_xml.find("featureName").Payload;
+        actionIF=new AIActionInterface(_xml.find("AIActionInterface"));
+        currentRawInput=0;
+        steps=new List<InputRange>();
+        XMLobject xo_steps=_xml.find("steps");
+        for(int i=0;i<xo_steps.ChildCount;i++){
+            steps.Add(new InputRange(xo_steps[i]));
+        }
+    }
     public int InputResolution{get{return inputResolution;}}
     public double[] Rewards(AIAction _action){
         List<double> result=new List<double>();
@@ -248,7 +340,27 @@ public class AIFeature{ //Der name ist vlt noch ein wenig unglücklich gewählt
         }
         return 0; //nicht korrekt aber vergibt Fehler
     }
-
+    public XMLobject toXML(){
+        XMLobject xo=new XMLobject("AIFeature");
+        xo.addChild(new XMLobject("featureName",featureName));
+        xo.addChild(new XMLobject("inputResolution",inputResolution.ToString()));
+        XMLobject xo_reward=new XMLobject("rewards");
+        foreach(double[] rew in rewards){
+            XMLobject xo_rew=new XMLobject("row");
+            foreach(double r in rew){
+                XMLobject xo_r =new XMLobject("value",r.ToString());
+                xo_rew.addChild(xo_r);
+            }
+            xo_reward.addChild(xo_rew);
+        }
+        XMLobject xo_steps=new XMLobject("steps");
+        foreach(InputRange ir in steps){
+            xo_steps.addChild(ir.toXML());
+        }
+        xo.addChild(xo_steps);
+        xo.addChild(actionIF.toXML());
+        return xo;
+    }
 }
 public class AIFeatureInterface{ //Sammelt alle nutzbaren Features in einem Objekt und macht sie zugänglich
     private List<AIFeature> features;
@@ -272,12 +384,20 @@ public class AIFeatureInterface{ //Sammelt alle nutzbaren Features in einem Obje
             return features[index];
         }
     }
+    public int[] getStateAddress(){
+        int[] stateAddress=new int[this.featureCount];
+        for(int i=0;i<this.featureCount;i++){
+            stateAddress[i]=this[i].ConvertedInput;
+        }
+        return stateAddress;
+    }
 }
 public class RewardMatrix{
     private AIActionInterface actionInterface;
     private double[][] rewMatrix;
     private AddressLookupTable indexList;
     private FeatureBuilder featureBuilder;
+    public FeatureBuilder FeatureBuilder{get{return featureBuilder;}}
     public RewardMatrix(FeatureBuilder _featureBuilder){
         featureBuilder=_featureBuilder;
         actionInterface=featureBuilder.ActionInterface;
@@ -309,6 +429,9 @@ public class RewardMatrix{
     public int addressToIndex(int[] _address){
         return indexList.getIndex(_address);
     }
+    public int[] indexToAddress(int index){
+        return indexList.getAddress(index);
+    }
 }
 public class AIAction{
     private string actionName;
@@ -318,6 +441,16 @@ public class AIAction{
     public AIAction(int _actionID, string _actionName){
         actionName=_actionName;
         actionID=_actionID;
+    }
+    public AIAction(XMLobject _xml){
+        actionName=_xml.find("actionName").Payload;
+        actionID=int.Parse(_xml.find("actionID").Payload);
+    }
+    public XMLobject toXML(){
+        return new XMLobject("AIAction",new XMLobject[]{
+            new XMLobject("actionName",actionName),
+            new XMLobject("actionID",ActionID.ToString())
+        });
     }
 }
 public class AIActionInterface{
@@ -332,6 +465,14 @@ public class AIActionInterface{
     public AIActionInterface(){
         actions=new List<AIAction>();
         actionCount=0;
+    }
+    public AIActionInterface(XMLobject _xml){
+        actions=new List<AIAction>();
+        actionCount=int.Parse(_xml.find("actionCount").Payload);
+        XMLobject xo_actions=_xml.find("actions");
+        for(int i=0;i<xo_actions.ChildCount;i++){
+            actions.Add(new AIAction(xo_actions[i]));
+        }
     }
     public int addAction(string _name){
         actions.Add(new AIAction(actionCount,_name));
@@ -353,6 +494,16 @@ public class AIActionInterface{
             }
         }
         return null;
+    }
+    public XMLobject toXML(){
+        XMLobject xo=new XMLobject("AIActionInterface");
+        xo.addChild(new XMLobject("actionCount",actionCount.ToString()));
+        XMLobject xo_actions=new XMLobject("actions");
+        foreach(AIAction a in actions){
+            xo_actions.addChild(a.toXML());
+        }
+        xo.addChild(xo_actions);
+        return xo;
     }
 }
 
