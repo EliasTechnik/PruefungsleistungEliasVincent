@@ -15,7 +15,7 @@ public class GameManager : MonoBehaviour {
     public bool respawnbool;
 
     //KI Start
-    AIActionInterface actionInterface;
+    public AIActionInterface actionInterface;
     AIFeature Wall_0;
     AIFeature Wall_45;
     AIFeature Wall_90;
@@ -27,16 +27,15 @@ public class GameManager : MonoBehaviour {
     AIFeature TargetDistance;
     FeatureBuilder fb;
     RewardMatrix rewMatrix;
-    QAgent agent;
-    AIFeatureInterface ai_input;
+    public QAgent agent;
+    public AIFeatureInterface ai_input;
 
     //KI End
 
+
     private void Awake() {
         Instance = this;
-    }
 
-    private void Start() {
         //KI instanziieren
         actionInterface=new AIActionInterface();
         actionInterface.addAction("W"); //ID=0
