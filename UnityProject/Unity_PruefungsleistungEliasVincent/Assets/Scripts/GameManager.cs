@@ -45,12 +45,12 @@ public class GameManager : MonoBehaviour {
         
 
         if (respawnbool) {
-            obstacleGenerator.HandleObstacles();
-            Player.RespawnPlayer();
+            //obstacleGenerator.HandleObstacles();
+            //Player.RespawnPlayer();
             Player.shouldRespawn=false;
             respawnbool = false;
         }
-        Player.UpdateMove();
+        //Player.UpdateMove();
         UpdateArrows();
     }
 
