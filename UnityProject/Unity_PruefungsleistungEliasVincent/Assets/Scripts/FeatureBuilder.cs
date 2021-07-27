@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using System;
+//using UnityEngine;
 
 using static FeatureBuilderTools; //nicht erforderlich
 public static class FeatureBuilderTools{
@@ -18,14 +19,25 @@ public static class FeatureBuilderTools{
         }
         return erg;
     }
+    public static int[] flipAddress(int[] address){
+        int[] newAddress=new int[address.Length];
+        for(int i=0;i<address.Length;i++){
+            newAddress[address.Length-i-1]=address[i];
+        }
+        return newAddress;
+    }
 }
 
 public class AddressLookupTable{
-    private List<List<int>> addressList;
-    public AddressLookupTable(){
-        addressList=new List<List<int>>();
+    //private List<List<int>> addressList;
+    private int[][] addressList;
+    private int currentLength;
+    public AddressLookupTable(int size){
+        //addressList=new List<List<int>>();
+        addressList=new int[size][];
+        currentLength=0;
     }
-    public AddressLookupTable(XMLobject _xml){
+    /*public AddressLookupTable(XMLobject _xml){
         addressList=new List<List<int>>();
         _xml=_xml.find("AddressLookupTable");
         for(int i=0;i<_xml.ChildCount;i++){
@@ -37,39 +49,38 @@ public class AddressLookupTable{
             }
             addressList.Insert(int.Parse(address.getAttribute("index")),a);
         }
-    }
+    }*/
     public int getIndex(int[] _address){
-        for(int i=0;i<addressList.Count;i++){
-            List<int> l=addressList[i];
-            int[] a2=l.ToArray();
+        for(int i=0;i<addressList.Length;i++){
             int match=0;
-            for(int j=0;j<a2.Length;j++){
-                if(_address[j]==a2[j]){
+            for(int j=0;j<_address.Length;j++){
+                if(addressList[i][j]==_address[j]){
                     match++;
                 }
             }
-            if(match==a2.Length){
+            if(match==_address.Length){
+                Console.WriteLine("address: "+addressToString(_address)+" relates to: "+i.ToString());
                 return i;
-            }
+            }  
         }
+        Console.WriteLine("ERROR: address "+addressToString(_address)+" not found.");
         return -1;
     }
     public int[] getAddress(int index){
-        if(index<addressList.Count){
-            return addressList[index].ToArray();
+        if(index<addressList.Length){
+            return addressList[index];
         }
         else{
             return null;
         }   
     }
     public void add(int[] _address){
-        List<int> l =new List<int>();
-        foreach(int i in _address){
-            l.Add(i);
-        }
-        addressList.Add(l);
+        //List<int> l =new List<int>();
+        addressList[currentLength]=(int[])_address.Clone();
+        currentLength++;
+        Console.WriteLine("address: "+addressToString(_address)+" relates to: "+currentLength.ToString());
     }
-    public XMLobject toXML(){
+/*    public XMLobject toXML(){
         XMLobject xo = new XMLobject("AddressLookupTable");
         int i=0;
         foreach(List<int> l in addressList){
@@ -85,6 +96,7 @@ public class AddressLookupTable{
         }
         return xo;
     }
+    */
 }
 public class FeatureBuilder{
     private FeatureBuilder nextElement; //null wenn es das letzte Element ist
@@ -137,6 +149,7 @@ public class FeatureBuilder{
             for(int i=0;i<_address.Length-1;i++){
                 newAddress[i]=_address[i+1];
             }
+            //Debug.Log("Address: "+addressToStringRev(_address));
             return content.Rewards(_action)[_address[0]]+nextElement.getReward(newAddress,_action);
         }
     }
@@ -389,7 +402,7 @@ public class AIFeatureInterface{ //Sammelt alle nutzbaren Features in einem Obje
         for(int i=0;i<this.featureCount;i++){
             stateAddress[i]=this[i].ConvertedInput;
         }
-        return stateAddress;
+        return flipAddress(stateAddress);
     }
 }
 public class RewardMatrix{
@@ -401,20 +414,20 @@ public class RewardMatrix{
     public RewardMatrix(FeatureBuilder _featureBuilder){
         featureBuilder=_featureBuilder;
         actionInterface=featureBuilder.ActionInterface;
-        indexList=new AddressLookupTable();
     }
     public void generateMatrix(){//method: sum
         rewMatrix=new double[this.RowCount][];
+        indexList=new AddressLookupTable(this.RowCount+1); //fix
         featureBuilder.Reset();
         int index=0;
         do{
             double[] row=new double[actionInterface.ActionCount];
             for(int actionCounter=0;actionCounter<actionInterface.ActionCount;actionCounter++){
-                row[actionCounter]=featureBuilder.getReward(featureBuilder.getAddress(),actionInterface.GetAIAction(actionCounter));
+                row[actionCounter]=featureBuilder.getReward(flipAddress(featureBuilder.getAddress()),actionInterface.GetAIAction(actionCounter));
             }
             rewMatrix[index]=row;
             index++;
-            indexList.add(featureBuilder.getAddress());
+            indexList.add(flipAddress(featureBuilder.getAddress()));
         }while(!featureBuilder.Next());
     }
     public int ActionCount{get{return actionInterface.ActionCount;}}
@@ -423,7 +436,7 @@ public class RewardMatrix{
     public int FieldCount{get{return featureBuilder.CombinationCount*actionInterface.ActionCount;}}
     public double[] getStage(int[] _address){
         int index=indexList.getIndex(_address);
-        //Debug.Log("Index: "+index.ToString());
+        Console.WriteLine("Index: "+index.ToString());
         return rewMatrix[index];
     } 
     public int addressToIndex(int[] _address){

@@ -45,8 +45,11 @@ public class PlayerObject : MonoBehaviour {
         GameManager.Instance.ai_input.getFeatureByName("Wall_225").CurrentRawInput=backrightdistance;
         GameManager.Instance.ai_input.getFeatureByName("Wall_270").CurrentRawInput=rightdistance;
         GameManager.Instance.ai_input.getFeatureByName("Wall_315").CurrentRawInput=forwardrightdistance;
-        GameManager.Instance.ai_input.getFeatureByName("Target").CurrentRawInput=distanceGain;
+        //GameManager.Instance.ai_input.getFeatureByName("Target").CurrentRawInput=distanceGain;
         GameManager.Instance.ai_input.getFeatureByName("Angle").CurrentRawInput=targetArrowRotation;
+        if(GameManager.Instance.ai_input.getFeatureByName("Angle")==null){
+            Debug.Log("NULL OBJECT");
+        }
 
         //GameManager.Instance.agent.Reward(GameManager.Instance.ai_input);
         GameManager.Instance.agent.PredictAndTrain(GameManager.Instance.ai_input);
@@ -190,7 +193,7 @@ public class PlayerObject : MonoBehaviour {
         GameManager.Instance.ai_input.getFeatureByName("Wall_225").CurrentRawInput=backrightdistance;
         GameManager.Instance.ai_input.getFeatureByName("Wall_270").CurrentRawInput=rightdistance;
         GameManager.Instance.ai_input.getFeatureByName("Wall_315").CurrentRawInput=forwardrightdistance;
-        GameManager.Instance.ai_input.getFeatureByName("Target").CurrentRawInput=distanceGain;
+        //GameManager.Instance.ai_input.getFeatureByName("Target").CurrentRawInput=distanceGain;
         GameManager.Instance.ai_input.getFeatureByName("Angle").CurrentRawInput=targetArrowRotation;
 
         GameManager.Instance.agent.Reward(GameManager.Instance.ai_input);

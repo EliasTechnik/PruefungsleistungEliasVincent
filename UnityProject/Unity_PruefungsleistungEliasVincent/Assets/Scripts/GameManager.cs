@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using static FeatureBuilderTools; 
+
 public class GameManager : MonoBehaviour {
 
     public static GameManager Instance {get; private set;}
@@ -184,10 +186,7 @@ public class GameManager : MonoBehaviour {
                                     new FeatureBuilder(
                                         Wall_0,
                                         new FeatureBuilder (
-                                            TargetFeature,
-                                            new FeatureBuilder (
-                                                AngleFeature
-                                            )
+                                            AngleFeature
                                         )
                                     )
                                 )
@@ -199,8 +198,17 @@ public class GameManager : MonoBehaviour {
         );
         Debug.Log("Feature Combinations: "+fb.CombinationCount.ToString());
 
+        do{
+           // Debug.Log("Address: "+addressToStringRev(fb.getAddress())+" Reward: "+fb.getReward(flipAddress(fb.getAddress()),actionInterface[0]).ToString());
+        }while(!fb.Next());
+
         rewMatrix=new RewardMatrix(fb);
         rewMatrix.generateMatrix();
+        for(int i=0;i<rewMatrix.RowCount;i++){
+            //Debug.Log(rewMatrix.getStage(rewMatrix.indexToAddress(i)));
+        }
+
+        Debug.Log("Feature Fields: "+rewMatrix.FieldCount.ToString());
 
         ai_input=new AIFeatureInterface();
         ai_input=fb.getFeatureInterface(ai_input);
