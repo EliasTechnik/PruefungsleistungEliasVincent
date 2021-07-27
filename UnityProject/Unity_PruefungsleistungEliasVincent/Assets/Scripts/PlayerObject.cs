@@ -20,11 +20,39 @@ public class PlayerObject : MonoBehaviour {
     private double forwarddistance, backdistance, leftdistance, rightdistance;
     private double forwardleftdistance, forwardrightdistance, backleftdistance, backrightdistance;
     private GameObject playerobject;
+    [SerializeField] private GameObject Arrow;
     public bool shouldRespawn;
+
+    private double lowerRef;
+    private double higherRef;
+    private double distanceGain=0;
+
+    //Angel 
+    float targetArrowRotation=0;
 
     private void Start() {
         rb = GetComponent<Rigidbody>();
         rb.useGravity = true;
+        TargetDistance();
+        lowerRef = currenttargetdistance-1;
+        higherRef = currenttargetdistance+1;
+
+        GameManager.Instance.ai_input.getFeatureByName("Wall_0").CurrentRawInput=forwarddistance;
+        GameManager.Instance.ai_input.getFeatureByName("Wall_45").CurrentRawInput=forwardleftdistance;
+        GameManager.Instance.ai_input.getFeatureByName("Wall_90").CurrentRawInput=leftdistance;
+        GameManager.Instance.ai_input.getFeatureByName("Wall_135").CurrentRawInput=backleftdistance;
+        GameManager.Instance.ai_input.getFeatureByName("Wall_180").CurrentRawInput=backdistance;
+        GameManager.Instance.ai_input.getFeatureByName("Wall_225").CurrentRawInput=backrightdistance;
+        GameManager.Instance.ai_input.getFeatureByName("Wall_270").CurrentRawInput=rightdistance;
+        GameManager.Instance.ai_input.getFeatureByName("Wall_315").CurrentRawInput=forwardrightdistance;
+        //GameManager.Instance.ai_input.getFeatureByName("Target").CurrentRawInput=distanceGain;
+        GameManager.Instance.ai_input.getFeatureByName("Angle").CurrentRawInput=targetArrowRotation;
+        if(GameManager.Instance.ai_input.getFeatureByName("Angle")==null){
+            Debug.Log("NULL OBJECT");
+        }
+
+        //GameManager.Instance.agent.Reward(GameManager.Instance.ai_input);
+        GameManager.Instance.agent.PredictAndTrain(GameManager.Instance.ai_input);
     }
 
     public void HandleMovement(KeyCode input) {
@@ -54,22 +82,51 @@ public class PlayerObject : MonoBehaviour {
 
         if (Input.GetKey(KeyCode.W)) {
             moveZ = .5f;
-            friction = 1f;
         }
         if (Input.GetKey(KeyCode.S)) {
             moveZ = -.5f;
-            friction = 1f;
         }
         if (Input.GetKey(KeyCode.A)) {
             moveX = -.5f;
-            friction = 1f;
         }
         if (Input.GetKey(KeyCode.D)) {
             moveX = .5f;
-            friction = 1f;
         }
 
         moveDir = new Vector3(moveX, 0 ,moveZ);
+    }
+
+    private void AIForward() {
+        float moveX = 0f;
+        float moveZ = 0f;
+
+        moveZ = .5f;
+
+        moveDir = new Vector3(moveX, 0, moveZ);
+    }
+    private void AILeft() {
+        float moveX = 0f;
+        float moveZ = 0f;
+
+        moveX = -.5f;
+
+        moveDir = new Vector3(moveX, 0, moveZ);
+    }
+    private void AIRight() {
+        float moveX = 0f;
+        float moveZ = 0f;
+
+        moveX = .5f;
+
+        moveDir = new Vector3(moveX, 0, moveZ);
+    }
+    private void AIBack() {
+        float moveX = 0f;
+        float moveZ = 0f;
+
+        moveZ = -.5f;
+
+        moveDir = new Vector3(moveX, 0, moveZ);
     }
 
     public void UpdateMove() {
@@ -96,8 +153,6 @@ public class PlayerObject : MonoBehaviour {
         inertia=new Vector3(inertia.x*friction,inertia.y*friction,inertia.z*friction);
         playerobject.transform.SetPositionAndRotation(currentPosition,new Quaternion(0,0.5f,0,0));
         rayposition = currentPosition; 
-
-        TargetDistance();
     }
 
     private void Update() {
@@ -107,6 +162,61 @@ public class PlayerObject : MonoBehaviour {
         } 
         TargetDistance();
         HandleRigidbodyMovement();
+        UpdateArrows();
+
+        targetdistance = TargetObject.Instance.transform.position - transform.position;
+        double testtargetdistance = Math.Abs(targetdistance.x) + Math.Abs(targetdistance.z);
+
+
+        if (testtargetdistance < lowerRef) {
+            distanceGain=1;
+            //Debug.Log(distanceGain + "positiv gain");
+            lowerRef = testtargetdistance-1;
+            higherRef = testtargetdistance+1;
+        }
+        if (testtargetdistance > higherRef) {
+            distanceGain=3;
+            //Debug.Log(distanceGain + "negativ gain");
+            higherRef = testtargetdistance+1;
+            lowerRef = testtargetdistance-1;
+        }
+
+        //Debug.Log(testtargetdistance + " targetdist");
+        //Debug.Log(lowerRef + "low");
+        //Debug.Log(higherRef + "high");
+
+        GameManager.Instance.ai_input.getFeatureByName("Wall_0").CurrentRawInput=forwarddistance;
+        GameManager.Instance.ai_input.getFeatureByName("Wall_45").CurrentRawInput=forwardleftdistance;
+        GameManager.Instance.ai_input.getFeatureByName("Wall_90").CurrentRawInput=leftdistance;
+        GameManager.Instance.ai_input.getFeatureByName("Wall_135").CurrentRawInput=backleftdistance;
+        GameManager.Instance.ai_input.getFeatureByName("Wall_180").CurrentRawInput=backdistance;
+        GameManager.Instance.ai_input.getFeatureByName("Wall_225").CurrentRawInput=backrightdistance;
+        GameManager.Instance.ai_input.getFeatureByName("Wall_270").CurrentRawInput=rightdistance;
+        GameManager.Instance.ai_input.getFeatureByName("Wall_315").CurrentRawInput=forwardrightdistance;
+        //GameManager.Instance.ai_input.getFeatureByName("Target").CurrentRawInput=distanceGain;
+        GameManager.Instance.ai_input.getFeatureByName("Angle").CurrentRawInput=targetArrowRotation;
+
+        GameManager.Instance.agent.Reward(GameManager.Instance.ai_input);
+        AIAction a = GameManager.Instance.agent.PredictAndTrain(GameManager.Instance.ai_input);
+        
+        switch(a.ActionID) {
+            case 0: 
+            AIForward();
+            break;
+            case 1:
+            AILeft();
+            break;
+            case 2:
+            AIBack();
+            break;
+            case 3:
+            AIRight();
+            break;
+        } 
+        
+        
+        //Debug.Log(distanceGain);
+        distanceGain=0; 
     }
 
     private void LateUpdate() {
@@ -145,36 +255,52 @@ public class PlayerObject : MonoBehaviour {
 
         RaycastHit hitforward, hitleft, hitright, hitback, hitforwardleft, hitforwardright, hitbackleft, hitbackright;
 
-        if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hitforward, 7,LayerMask)) {
+        if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hitforward, 500,LayerMask)) {
             forwarddistance = hitforward.distance;
+            //Debug.Log(forwarddistance);
+            Debug.DrawRay(transform.position, Vector3.forward * 100, Color.green);
         }
 
-        if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.left), out hitleft, 7,LayerMask)) {
-            rightdistance = hitleft.distance;
-        }
-
-        if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.right), out hitright, 7,LayerMask)) {
+        if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.left), out hitleft, 500,LayerMask)) {
             leftdistance = hitleft.distance;
+            //Debug.Log(leftdistance);
+            Debug.DrawRay(transform.position, Vector3.left * 100, Color.green);
         }
 
-        if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.back), out hitback, 7,LayerMask)) {
+        if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.right), out hitright, 500,LayerMask)) {
+            rightdistance = hitleft.distance;
+            //Debug.Log(rightdistance);
+            Debug.DrawRay(transform.position, Vector3.right * 100, Color.green);
+        }
+
+        if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.back), out hitback, 500,LayerMask)) {
             backdistance = hitback.distance;
+            //Debug.Log(backdistance);
+            Debug.DrawRay(transform.position, Vector3.back * 100, Color.green);
         }
 
-        if (Physics.Raycast(transform.position, transform.TransformDirection(new Vector3(-1,0,1)), out hitforwardleft, 7,LayerMask)) {
+        if (Physics.Raycast(transform.position, transform.TransformDirection(new Vector3(-1,0,1)), out hitforwardleft, 500,LayerMask)) {
             forwardleftdistance = hitforwardleft.distance;
+            //Debug.Log(forwardleftdistance);
+            Debug.DrawRay(transform.position, new Vector3(-1,0,1) * 100, Color.green);
         }
 
-        if (Physics.Raycast(transform.position, transform.TransformDirection(new Vector3(1,0,1)), out hitforwardright, 7,LayerMask)) {
+        if (Physics.Raycast(transform.position, transform.TransformDirection(new Vector3(1,0,1)), out hitforwardright, 500,LayerMask)) {
             forwardrightdistance = hitforwardright.distance;
+            //Debug.Log(forwardrightdistance);
+            Debug.DrawRay(transform.position, new Vector3(1,0,1) * 100, Color.green);
         }
 
-        if (Physics.Raycast(transform.position, transform.TransformDirection(new Vector3(-1,0,-1)), out hitbackleft, 7,LayerMask)) {
+        if (Physics.Raycast(transform.position, transform.TransformDirection(new Vector3(-1,0,-1)), out hitbackleft, 500,LayerMask)) {
             backleftdistance = hitbackleft.distance;
+            //Debug.Log(backleftdistance);
+            Debug.DrawRay(transform.position, new Vector3(-1,0,-1) * 100, Color.green);
         }
 
-        if (Physics.Raycast(transform.position, transform.TransformDirection(new Vector3(1,0,-1)), out hitbackright, 7,LayerMask)) {
+        if (Physics.Raycast(transform.position, transform.TransformDirection(new Vector3(1,0,-1)), out hitbackright, 500,LayerMask)) {
             backrightdistance = hitbackright.distance;
+            //Debug.Log(backrightdistance);
+            Debug.DrawRay(transform.position, new Vector3(1,0,-1) * 100, Color.green);
         }
     }
 
@@ -182,6 +308,16 @@ public class PlayerObject : MonoBehaviour {
     public void TargetDistance() { 
         targetdistance = TargetObject.Instance.transform.position - currentPosition;
         currenttargetdistance = Math.Abs(targetdistance.x) + Math.Abs(targetdistance.z);
-        //Debug.Log(currenttargetdistance);
     }
+
+    public void UpdateArrows(){
+        Vector3 tp=TargetObject.Instance.transform.position;
+        tp.y+=0.6f;
+        Vector3 direction=(tp-Arrow.transform.position).normalized;
+        Quaternion lookRotation=Quaternion.LookRotation(-direction);
+        Arrow.transform.rotation=Quaternion.Slerp(Arrow.transform.rotation,lookRotation,1);
+        targetArrowRotation=180-lookRotation.eulerAngles.y;
+    }
+
+
 }
