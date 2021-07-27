@@ -9,7 +9,6 @@ public class GameManager : MonoBehaviour {
     private PlayerObject Player;
     private bool inputai=false;
     [SerializeField] private TargetObject Target;
-    [SerializeField] private GameObject Arrow;
     [SerializeField] private ObstacleGenerator obstacleGenerator;
 
     public bool respawnbool;
@@ -24,7 +23,8 @@ public class GameManager : MonoBehaviour {
     AIFeature Wall_225;
     AIFeature Wall_270;
     AIFeature Wall_315;
-    AIFeature TargetDistance;
+    AIFeature TargetFeature;
+    AIFeature AngleFeature;
     FeatureBuilder fb;
     RewardMatrix rewMatrix;
     public QAgent agent;
@@ -44,16 +44,16 @@ public class GameManager : MonoBehaviour {
         actionInterface.addAction("D"); //ID=3
 
         InputRange[] IRdistance=new InputRange[]{
-                new InputRange(0,3,true), //Weit weg
-                new InputRange(1,2,3),    //näher dran  
-                new InputRange(2,0,1)     //nah dran  
+                new InputRange(2,0,3),     //nah dran  
+                new InputRange(1,3,5),    //näher dran  
+                new InputRange(0,5,true) //Weit weg
             };
 
         Wall_0=new AIFeature(//frontal
             new double[3][]{//W A S D
                 new double[]{1,1,1,1},
-                new double[]{-2,1,1,1},
                 new double[]{-10,1,1,1},
+                new double[]{-20,1,1,1}
             },
             IRdistance,
             actionInterface,
@@ -63,8 +63,8 @@ public class GameManager : MonoBehaviour {
         Wall_45=new AIFeature(//frontal links
             new double[3][]{//W A S D
                 new double[]{1,1,1,1},
-                new double[]{-1,-1,1,1},
-                new double[]{-5,-5,1,1},
+                new double[]{-10,-10,1,1},
+                new double[]{-20,-20,1,1}
             },
             IRdistance,
             actionInterface,
@@ -74,8 +74,8 @@ public class GameManager : MonoBehaviour {
         Wall_90=new AIFeature(//links
             new double[3][]{//W A S D
                 new double[]{1,1,1,1},
-                new double[]{1,-2,1,1},
                 new double[]{1,-10,1,1},
+                new double[]{1,-20,1,1}
             },
             IRdistance,
             actionInterface,
@@ -85,8 +85,8 @@ public class GameManager : MonoBehaviour {
         Wall_135=new AIFeature(//hinten links
             new double[3][]{//W A S D
                 new double[]{1,1,1,1},
-                new double[]{1,-1,-1,1},
-                new double[]{1,-5,-5,1},
+                new double[]{1,-10,-10,1},
+                new double[]{1,-20,-20,1}
             },
             IRdistance,
             actionInterface,
@@ -96,8 +96,8 @@ public class GameManager : MonoBehaviour {
         Wall_180=new AIFeature(//hinten
             new double[3][]{//W A S D
                 new double[]{1,1,1,1},
-                new double[]{1,1,-2,1},
                 new double[]{1,1,-10,1},
+                new double[]{1,1,-20,1}
             },
             IRdistance,
             actionInterface,
@@ -106,8 +106,8 @@ public class GameManager : MonoBehaviour {
         Wall_225=new AIFeature(//hinten rechts
             new double[3][]{//W A S D
                 new double[]{1,1,1,1},
-                new double[]{1,1,-1,-1},
-                new double[]{1,1,-5,-5},
+                new double[]{1,1,-10,-10},
+                new double[]{1,1,-20,-20}
             },
             IRdistance,
             actionInterface,
@@ -116,8 +116,8 @@ public class GameManager : MonoBehaviour {
         Wall_270=new AIFeature(//rechts
             new double[3][]{//W A S D
                 new double[]{1,1,1,1},
-                new double[]{1,1,1,-2},
                 new double[]{1,1,1,-10},
+                new double[]{1,1,1,-20}
             },
             IRdistance,
             actionInterface,
@@ -126,13 +126,46 @@ public class GameManager : MonoBehaviour {
         Wall_315=new AIFeature(//frontal rechts
             new double[3][]{//W A S D
                 new double[]{1,1,1,1},
-                new double[]{-1,1,1,-1},
-                new double[]{-5,1,1,-5},
+                new double[]{-10,1,1,-10},
+                new double[]{-20,1,1,-20}
             },
             IRdistance,
             actionInterface,
             "Wall_315"
         );
+        TargetFeature=new AIFeature(
+            new double[3][]{
+                new double[]{0,0,0,0},
+                new double[]{100,100,100,100},
+                new double[]{-50,-50,-50,-50}
+            },
+            new InputRange[] {
+                new InputRange(2,1.5,3),     //entfernt sich
+                new InputRange(1,0.5,1.5),    //kommt näher 
+                new InputRange(0,double.MinValue,false) //passiert nichts
+            },
+            actionInterface,
+            "Target"
+        );
+        AngleFeature=new AIFeature(
+            new double[5][] {// W A S D
+                new double[]{-10,-10,-10,50},
+                new double[]{-10,-10,50,-10},
+                new double[]{-10,-10,50,-10},
+                new double[]{-10,50,-10,-10},
+                new double[]{50,-10,-10,-10}
+            },
+            new InputRange[] {
+                new InputRange(4,-45, 45),
+                new InputRange(3, 45,135),
+                new InputRange(2,135, 180),
+                new InputRange(1,-135, -180),
+                new InputRange(0,-45, -135)
+            },
+            actionInterface,
+            "Angle"
+        );
+
 
         fb=new FeatureBuilder(
             Wall_315,
@@ -149,7 +182,13 @@ public class GameManager : MonoBehaviour {
                                 new FeatureBuilder(
                                     Wall_45,
                                     new FeatureBuilder(
-                                        Wall_0
+                                        Wall_0,
+                                        new FeatureBuilder (
+                                            TargetFeature,
+                                            new FeatureBuilder (
+                                                AngleFeature
+                                            )
+                                        )
                                     )
                                 )
                             )
@@ -167,7 +206,8 @@ public class GameManager : MonoBehaviour {
         ai_input=fb.getFeatureInterface(ai_input);
 
         agent=new QAgent(rewMatrix, actionInterface);
-        
+
+        agent.setParams(0.9,0.5,0.8);
         //KI Ende
 
         Player = new PlayerObject(GameObject.Find("player_obj"));
@@ -201,16 +241,6 @@ public class GameManager : MonoBehaviour {
             Player.shouldRespawn=false;
             respawnbool = false;
         }
-        //Player.UpdateMove();
-        UpdateArrows();
-    }
-
-        private void UpdateArrows(){
-        Vector3 tp=Target.transform.position;
-        tp.y+=0.6f;
-        Vector3 direction=(tp-Arrow.transform.position).normalized;
-        Quaternion lookRotation=Quaternion.LookRotation(-direction);
-        Arrow.transform.rotation=Quaternion.Slerp(Arrow.transform.rotation,lookRotation,1);
     }
 
     public void toggleAI() {
